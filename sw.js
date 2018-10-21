@@ -1,0 +1,66 @@
+var staticCacheName = 'resturant-cache-1';
+
+/* array of all the ruls on the website that need to be cached */
+let urlToCache = [
+  './',
+  './restaurant.html',
+  './css/styles.css',
+  './data/restaurants.json',
+  './img/image_1.jpg',
+  './img/image_2.jpg',
+  './img/image_3.jpg',
+  './img/image_4.jpg',
+  './img/image_5.jpg',
+  './img/image_6.jpg',
+  './img/image_7.jpg',
+  './img/image_8.jpg',
+  './img/image_9.jpg',
+  './img/image_10.jpg',
+  './js/main.js',
+  './js/main-2.js',
+  './js/main-1.js',
+];
+
+/**
+  * listen for the install event to occur, and then wait until caching of urls are done.
+  * if anything goes wrong output an error message.
+  */
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(staticCacheName).then(function (cache) {
+      console.log(cache);
+      return cache.addAll(urlToCache);
+    }).catch(erroe => {
+      console.log(erroe);
+    })
+  );
+});
+
+/**
+  * Handles checking of cache Names, and delition of cacheNames.
+  */
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    caches.keys().then(function (cacheNames) {
+      return Promise.all(
+        cacheNames.filter(function (cacheName) {
+          return cacheName.startsWith('resturants-') &&
+            cacheName != staticCacheName;
+        }).map(function (cacheName) {
+          return caches.delete(cacheName);
+        })
+      );
+    })
+  );
+});
+
+/**
+  * handles fetch requests from the user when items are being called for via the cache
+  */
+self.addEventListener('fetch', function (event) {
+  event.respondWith(
+    caches.match(event.request).then(function (response) {
+      return response || fetch(event.request);
+    })
+  )
+})
